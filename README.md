@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+
 <p align="center">
   <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
 </p>
@@ -101,4 +101,4 @@ Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
 =======
 # auction-app
  Real-time auction app built for speed demons and bidding beasts. Scalable, multi-currency, JWT-auth’d, continent-hosted. Stack: NestJS + Prisma + PostgreSQL/MongoDB. Place your bids or cry later.
->>>>>>> 362b97b10ebd565467ead6e41211aa23ac668133
+
