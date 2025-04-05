@@ -1,0 +1,279 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model accounts {
+  account_id             String        @id @default(uuid()) @db.VarChar(50)
+  email                  String        @unique @db.VarChar(100)
+  password_hash          String        @db.VarChar(225)
+  created_at             DateTime      @default(now())
+  is_verified            Boolean       @default(false)
+  user_role              UserRole      @default(bidder)
+  is_google_login        Boolean       @default(false)
+  account_status         AccountStatus @default(pending)
+  verification_token     String?       @db.VarChar(255)
+  verification_expires_at DateTime?
+  last_login             DateTime?
+  failed_login_attempts  Int           @default(0)
+  is_account_locked      Boolean       @default(false)
+
+  // Personal Information
+  first_name             String        @default("Unknown") @db.VarChar(100)
+  last_name              String        @db.VarChar(100)
+  profile_image_url      String?
+  phone_number           String?       @db.VarChar(15)
+  country_code           String?       @db.VarChar(5)
+  street_address         String?       @db.VarChar(255)
+  city                   String?       @db.VarChar(100)
+  state                  String?       @db.VarChar(100)
+  country                String?       @db.VarChar(100)
+  zip_code               String?       @db.VarChar(20)
+  date_of_birth          DateTime?
+
+  // Audit Logs
+  failed_login_at        DateTime?
+  last_password_reset_at DateTime?
+  last_failed_login_ip   String?       @db.VarChar(45)
+  current_login_ip       String?       @db.VarChar(45)
+  previous_login_ip      String?       @db.VarChar(45)
+
+  subscriptions          user_subscription[]
+  user_addons            user_addon[]       // Changed to correctly reference user_addon model
+  payments               payment[]          // Added missing relation field for payments
+  auctions      auction[]
+  
+  @@map("accounts") // Explicitly map the model to the "accounts" table
+}
+
+enum UserRole {
+  bidder 
+  auctioneer
+  admin
+}
+
+enum AccountStatus {
+  pending
+  active
+  suspended
+  banned
+}
+
+model password_reset_tokens {
+  id           String    @id @default(dbgenerated("substring(md5(random()::text), 1, 12)")) @db.VarChar(12)
+  email        String
+  token        String
+  expires_at   DateTime
+  is_used      Boolean   @default(false)
+  created_at   DateTime  @default(now())
+  updated_at   DateTime  @updatedAt
+
+  @@map("password_reset_tokens") // Table name in DB
+}
+
+model plan {
+  plan_id          String   @id @default(uuid())
+  name             String   @unique
+  price_usd        Float    
+  price_inr        Float    
+  price_eur        Float    
+  auctions_per_month Int     
+  max_hosts        Int      
+  max_bidders      Int      
+  max_images       Int      
+  max_videos       Int
+  max_live_auctions   Int      // Max Live Auctions per month
+  max_timed_auctions  Int
+  timed_auction_duration Int    
+  storage_limit_gb Float    
+  extra_features   String?  
+
+  subscriptions    user_subscription[]
+  addons           plan_addon[] 
+  payments         payment[]          // Added missing relation field for payments
+
+  @@map("plan")
+}
+
+model addon {
+  addon_id       String   @id @default(uuid())
+  name           String   
+  description    String?
+  base_price_usd Float   
+  base_price_inr Float   
+  base_price_eur Float   
+  unit           String  
+
+  plan_addons    plan_addon[]
+  user_addons    user_addon[]
+  payments       payment[]          // Added missing relation field for payments
+
+  @@map("addon")
+}
+
+model plan_addon {
+  plan_addon_id   String   @id @default(uuid())
+  plan            plan     @relation(fields: [plan_id], references: [plan_id])
+  plan_id         String
+  addon           addon    @relation(fields: [addon_id], references: [addon_id])
+  addon_id        String
+  created_at      DateTime @default(now())
+
+  @@map("plan_addon")
+}
+
+model user_addon {
+  user_addon_id String   @id @default(uuid())
+  user          accounts @relation(fields: [user_id], references: [account_id])
+  user_id       String
+  addon         addon    @relation(fields: [addon_id], references: [addon_id])
+  addon_id      String
+  quantity      Int
+  total_price   Float
+  currency      currency
+  purchased_at  DateTime @default(now())
+
+  @@map("user_addon")
+}
+
+model user_subscription {
+  subscription_id String   @id @default(uuid())
+  user            accounts @relation(fields: [user_id], references: [account_id])
+  user_id         String
+  plan            plan     @relation(fields: [plan_id], references: [plan_id])
+  plan_id         String
+  price_paid      Float
+  currency        currency
+  status          subscription_status
+  start_date      DateTime @default(now())
+  end_date        DateTime?
+
+  @@map("user_subscription")
+}
+
+model payment {
+  payment_id      String   @id @default(uuid())
+  user            accounts @relation(fields: [user_id], references: [account_id])
+  user_id         String
+  plan            plan?    @relation(fields: [plan_id], references: [plan_id])
+  plan_id         String?
+  addon           addon?   @relation(fields: [addon_id], references: [addon_id])
+  addon_id        String?
+  amount          Float
+  currency        currency
+  payment_method  payment_method @default(cashfree)
+  status          payment_status
+  transaction_id  String  @unique
+  created_at      DateTime @default(now())
+
+  @@map("payment")
+}
+
+enum currency {
+  INR
+  USD
+  EUR
+}
+
+enum subscription_status {
+  active
+  expired
+  canceled
+}
+
+enum payment_status {
+  pending
+  completed
+  failed
+}
+
+enum payment_method {
+  cashfree
+}
+
+
+
+model auction {
+  auction_id               String   @id 
+  auction_name             String   
+  auction_product_type     product_type  
+  auction_details          String?  
+  max_participants         Int?     // Optional for Timed Auctions
+  min_next_bid_increment   Float    
+  initial_bid_amount       Float    
+  currency                 currency  
+
+  auction_type             auction_type  // 'LIVE' or 'TIMED'
+  auction_start_time       DateTime  
+  auction_end_time         DateTime? // Optional for Live Auctions  
+  status                   auction_status @default(upcoming)  
+
+  auctioneer_id            String   // Foreign key from accounts
+  auctioneer               accounts @relation(fields: [auctioneer_id], references: [account_id])
+
+  images                   auction_image[]  
+  files                    auction_file[]   
+
+  rejection_status         Boolean? @default(false) // True if auction is rejected
+  rejection_reason         String?  // Reason for rejection (if rejected)
+
+  created_at               DateTime @default(now())
+  updated_at               DateTime @updatedAt
+
+  @@map("auction")
+}
+
+model auction_image {
+  image_id                 String   @id @default(uuid())
+  auction                  auction  @relation(fields: [auction_id], references: [auction_id])
+  auction_id               String
+  image_url                String   // URL to the stored image
+  uploaded_at              DateTime @default(now())
+
+  @@map("auction_image")
+}
+
+model auction_file {
+  file_id                  String   @id @default(uuid())
+  auction                  auction  @relation(fields: [auction_id], references: [auction_id])
+  auction_id               String
+  file_url                 String   // URL to the stored file (e.g., PDF, docs)
+  file_type                String   // Type of file (PDF, DOCX, etc.)
+  uploaded_at              DateTime @default(now())
+
+  @@map("auction_file")
+}
+
+enum auction_type {
+  live
+  timed
+}
+
+enum product_type {
+  electronics
+  fashion
+  automobiles
+  real_estate
+  art
+  collectibles
+  home_appliances
+  sports
+  others
+}
+
+enum auction_status {
+  upcoming
+  ongoing
+  completed
+  cancelled
+}
