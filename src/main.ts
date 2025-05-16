@@ -10,7 +10,7 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const logger = new ApplicationLogger();
     app.useLogger(logger);
-  app.useGlobalInterceptors(new ResponseInterceptor())
+  app.useGlobalInterceptors(new ResponseInterceptor() )
   app.useGlobalFilters(new HttpExceptionFilter())
 
   const config = new DocumentBuilder()

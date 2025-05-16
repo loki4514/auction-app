@@ -11,6 +11,11 @@ import { AuthController } from './auth/interface/controllers/auth.controller';
 import { AppConfig } from './shared/config/config';
 import { CreateAuctionController } from './auctions/interface/controllers/create-auction.controller';
 import { AuctionModule } from './auctions/auctions.module';
+import { AuctionImageUploadController } from './auctions/interface/controllers/upload-auction-image.controller';
+import { GetAuctionsController } from './auctions/interface/controllers/get-all-auctions.controller';
+import { CacheModule } from '@nestjs/cache-manager';
+import { redisStore } from 'cache-manager-redis-store';
+
 
 
 @Module({
@@ -23,10 +28,21 @@ import { AuctionModule } from './auctions/auctions.module';
       //   abortEarly: true, // Stops validation on the first error
       // },
     }),
+    CacheModule.register({
+      store : async() => {
+        await redisStore({
+          socket: {
+            host: 'localhost',
+            port: 6379,
+          }
+        })
+      }
+    }),
     AuctionModule,
     UserModule,
   AuthModule], // ✅ Import UserModule here
-  controllers: [AppController, UserController, PasswordResetControllers, VerifyUserController, AuthController, CreateAuctionController],
+  controllers: [AppController, UserController, PasswordResetControllers, VerifyUserController, AuthController, 
+    CreateAuctionController, AuctionImageUploadController, GetAuctionsController],
   providers: [AppService],
 })
 export class AppModule {}

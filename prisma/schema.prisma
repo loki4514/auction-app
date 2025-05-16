@@ -90,8 +90,8 @@ model plan {
   auctions_per_month Int     
   max_hosts        Int      
   max_bidders      Int      
-  max_images       Int      
-  max_videos       Int
+  max_images_per_auction       Int      @default(5) 
+  max_videos_per_auction       Int  @default(1)
   max_live_auctions   Int      // Max Live Auctions per month
   max_timed_auctions  Int
   timed_auction_duration Int    
@@ -235,7 +235,7 @@ model auction {
 
 model auction_image {
   image_id                 String   @id @default(uuid())
-  auction                  auction  @relation(fields: [auction_id], references: [auction_id])
+  auction                  auction   @relation(fields: [auction_id], references: [auction_id], onDelete: Cascade)
   auction_id               String
   image_url                String   // URL to the stored image
   uploaded_at              DateTime @default(now())

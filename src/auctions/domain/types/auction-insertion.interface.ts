@@ -4,3 +4,9 @@ export interface AuctionInsertionReponse {
     status? : number,
     duplicate : boolean
 }
+
+export interface AuctionUpdateReponse {
+    updation_flag : boolean,
+    message : string,
+    status? : number
+}
