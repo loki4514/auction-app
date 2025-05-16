@@ -1,3 +1,5 @@
+import { AuctionUpdateDetailsDto } from "src/auctions/interface/dtos/auction-update.dto";
+
 export type ProductType = 
     | "electronics" 
     | "fashion" 
@@ -29,4 +31,11 @@ export interface AuctionEntity {
     auction_start_time: Date;
     auction_end_time?: Date | null;
     auctioneer_id: string;
+}
+
+
+export interface AuctionUpdateEntity {
+    auction_id : string,
+    auctioneer_id : string,
+    auction_params : AuctionUpdateDetailsDto
 }

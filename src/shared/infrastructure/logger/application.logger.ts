@@ -37,8 +37,8 @@ export class ApplicationLogger implements LoggerService {
         this.logger.error(`${message} - ${trace || ''}`);
     }
 
-    warn(message: string) {
-        this.logger.warn(message);
+    warn(message: string, trace?: string) {
+        this.logger.warn(`${message} - ${trace || ''}`);
     }
 
     debug(message: string) {

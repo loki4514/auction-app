@@ -5,7 +5,7 @@ import { ApplicationLogger } from "src/shared/infrastructure/logger/application.
 import * as moment from "moment-timezone";
 import { getDetails } from "src/shared/types/prisma.types";
 import { AuctionPlanDetails } from "src/auctions/domain/types/auction-plan.details.interface";
-import { Injectable, InternalServerErrorException } from "@nestjs/common";
+import { BadRequestException, Injectable, InternalServerErrorException } from "@nestjs/common";
 
 
 @Injectable()
@@ -103,6 +103,8 @@ export class GetAuctionDetailsRepository extends IGetAuctionDetails {
     }
 
     async getAuctionDetails(user_id: string): Promise<getDetails<AuctionPlanDetails | null>> {
+
+        
         try {
             const subscriptions = await this.prisma.user_subscription.findMany({
                 where: {
@@ -123,10 +125,10 @@ export class GetAuctionDetailsRepository extends IGetAuctionDetails {
                     message: "Plan details found",
                     data: {
                         max_auction_per_month: plan.auctions_per_month || 5,
-                        max_images: plan.max_images || 50,
+                        max_images_per_auction: plan.max_images_per_auction || 5,
                         max_hosts: plan.max_hosts || 5,
                         max_bidders: plan.max_bidders || 50,
-                        max_videos: plan.max_videos || 5,
+                        max_videos_per_auctions: plan.max_images_per_auction || 1,
                         max_storage_limit_in_gb: plan.storage_limit_gb || 10,
                         max_live_auctions: plan.max_live_auctions || 3,
                         max_timed_auctions: plan.max_timed_auctions || 10,
@@ -143,10 +145,10 @@ export class GetAuctionDetailsRepository extends IGetAuctionDetails {
                 message: "No active plan found. Returning default limits.",
                 data: {
                     max_auction_per_month: 5,
-                    max_images: 50,
+                    max_images_per_auction: 5,
                     max_hosts: 5,
                     max_bidders: 50,
-                    max_videos: 5,
+                    max_videos_per_auctions: 1,
                     max_storage_limit_in_gb: 10,
                     max_live_auctions: 3,
                     max_timed_auctions: 10,
