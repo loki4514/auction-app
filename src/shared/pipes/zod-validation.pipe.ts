@@ -3,33 +3,48 @@ import { ZodSchema, ZodError } from 'zod';
 
 @Injectable()
 export class ZodValidationPipe implements PipeTransform {
-    constructor(private readonly schema: ZodSchema<any>) {}
-    
+    constructor(private readonly schema: ZodSchema<any>) { }
+
     transform(value: any, metadata: ArgumentMetadata) {
         try {
-            // For query parameters and body, we need to handle them differently
-            if (metadata.type === 'query') {
-                return value; // Allow query params to pass through
+            // Skip validation for query parameters and path parameters
+            if (metadata.type === 'query' || metadata.type === 'param') {
+                console.log(`Skipping validation for ${metadata.type}:`, value);
+                return value;
             }
-            console.log(value,"thi sis isuva;")
+
+            console.log('=== DEBUG INFO ===');
+            console.log('Value:', value);
+            console.log('Value type:', typeof value);
+            console.log('Metadata:', metadata);
+            console.log('Is string?', typeof value === 'string');
+            console.log('==================');
+
             return this.schema.parse(value);
-            
-            
+
         } catch (error) {
-            console.log(error,"this is error ")
+            console.log('=== ERROR DEBUG ===');
+            console.log('Error:', error);
+            console.log('Error type:', error.constructor.name);
             if (error instanceof ZodError) {
-                // Format the error message
-                console.log(error.errors,"thiis is the error ", error, error.errors[0])
+                console.log('Zod errors:', error.errors);
+            }
+            console.log('==================');
+
+            if (error instanceof ZodError) {
                 const firstError = error.errors[0]?.message || 'Validation failed';
-                throw new HttpException(
-                    {
-                        success: false,
-                        message: firstError,
-                        status: HttpStatus.BAD_REQUEST,
-                        error: firstError,
-                    },
-                    HttpStatus.BAD_REQUEST
-                );
+                console.log("Validating correct error", firstError, typeof firstError);
+                
+                const errorResponse = {
+                    success: false,
+                    message: firstError,
+                    statusCode: HttpStatus.BAD_REQUEST,
+                    error: firstError,
+                };
+
+                console.log('Throwing error response:', JSON.stringify(errorResponse, null, 2));
+                
+                throw new BadRequestException(errorResponse);
             }
             throw new BadRequestException('Invalid request data');
         }

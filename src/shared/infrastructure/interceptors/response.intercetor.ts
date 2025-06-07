@@ -17,9 +17,11 @@ export interface ApiResponseData<T> {
 
 @Injectable()
 export class ResponseInterceptor<T> implements NestInterceptor<T, T> {
+    
     intercept(context: ExecutionContext, next: CallHandler<T>): Observable<T> {
         return next.handle().pipe(
-            tap(res => console.log('Response: dummy this', res)), // Just logging, not modifying anything
+            tap(res => 
+                console.log('Response: Interceptor', res)), // Just logging, not modifying anything
             map(res => res) // Forward response as it is
         );
     }

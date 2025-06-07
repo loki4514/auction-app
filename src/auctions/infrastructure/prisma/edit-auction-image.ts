@@ -1,15 +1,19 @@
+import { Injectable } from "@nestjs/common";
+import { IsJSON } from "class-validator";
 import { EditAuctionImage } from "src/auctions/domain/entity/auction-image.entity";
 import { IEditAuctionImage } from "src/auctions/domain/repository/edit-auction-image.repository";
 import { AuctionImageUpdation } from "src/auctions/domain/types/auction-image.interface";
 import { PrismaService } from "src/shared/infrastructure/database/prisma/prisma.service";
 
-
+@Injectable()
 export class EditAuctionImageRepository extends IEditAuctionImage {
     constructor(
         private readonly prisma: PrismaService
     ) {
         super();
     }
+
+
 
     async editAuctionImage(imageParams: EditAuctionImage): Promise<AuctionImageUpdation> {
         try {

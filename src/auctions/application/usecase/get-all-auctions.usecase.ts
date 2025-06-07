@@ -10,7 +10,7 @@ export class GetAllAuctionUsecase {
         private readonly getAuctions: IGetAllAuctions,
     ) {}
 
-    async getAllAuctions(limit: number, page: number): Promise<IAllAuctionResponse> {
+    async getAllAuctions(page: number, limit: number): Promise<IAllAuctionResponse> {
         try {
             this.logger.debug(`Fetching auctions with limit: ${limit}, page: ${page}`);
 

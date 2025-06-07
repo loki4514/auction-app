@@ -2,15 +2,26 @@ import { AuctionUpdateEntity } from "src/auctions/domain/entity/auction.entity";
 import { AuctionUpdateReponse } from "src/auctions/domain/types/auction-insertion.interface";
 import { IEditAuction } from "../../domain/repository/edit-auction.repository";
 import { PrismaService } from "src/shared/infrastructure/database/prisma/prisma.service";
+import { Injectable } from "@nestjs/common";
+import { AuctionMappers } from "../mappers/auctions-mapper";
 
-
+@Injectable()
 export class UpdateAuctionRepository extends IEditAuction {
-    constructor(private prisma: PrismaService) {
+    constructor(private prisma: PrismaService, 
+        private readonly auctionMapper: AuctionMappers
+    ) {
         super();
     }
 
     async updateAuctionDetails(updateParams: AuctionUpdateEntity): Promise<AuctionUpdateReponse> {
         const { auction_id, auction_params, auctioneer_id } = updateParams;
+
+        console.log("auction update params", updateParams)
+
+        const mappedPrismaData = this.auctionMapper.ToORMForUpdate(auction_params);
+        console.log(mappedPrismaData,"this is mapped primsa data")
+
+
 
         try {
             const auction = await this.prisma.auction.findFirst({
@@ -28,9 +39,17 @@ export class UpdateAuctionRepository extends IEditAuction {
                 };
             }
 
+            if (auction.status !== "upcoming") {
+                return {
+                    updation_flag: false,
+                    message: "Action not allowed. Only auctions with status 'upcoming' can be modified.",
+                    status: 400
+                };
+            }
+
             await this.prisma.auction.update({
                 where: { auction_id },
-                data: auction_params
+                data: mappedPrismaData
             });
 
             return {
@@ -40,6 +59,7 @@ export class UpdateAuctionRepository extends IEditAuction {
             };
         } catch (error) {
             // Optional: Log error if needed
+            console.log("Error updating auction:", error);
             return {
                 updation_flag: false,
                 message: "Error occurred while updating auction details. Please try again later.",

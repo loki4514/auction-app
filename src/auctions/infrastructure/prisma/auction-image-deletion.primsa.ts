@@ -1,7 +1,9 @@
+import { Injectable } from "@nestjs/common";
 import { IDeleteAuctionImage } from "src/auctions/domain/repository/edit-auction-image.repository";
 import { AuctionImageDeletion } from "src/auctions/domain/types/auction-image.interface";
 import { PrismaService } from "src/shared/infrastructure/database/prisma/prisma.service";
 
+@Injectable()
 export class DeleteAuctionImageRepository extends IDeleteAuctionImage {
     constructor(
         private readonly prisma: PrismaService

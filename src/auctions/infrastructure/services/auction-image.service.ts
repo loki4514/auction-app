@@ -57,26 +57,29 @@ export class S3Service {
         return uploadedUrls;
     }
 
-    async deleteFiles(uploadedUrls: string[]): Promise<void> {
-        const objects = uploadedUrls.map((url) => {
-            const urlObj = new URL(url);
-            return { Key: decodeURIComponent(urlObj.pathname.slice(1)) }; // remove leading slash
-        });
+    async deleteFiles(uploadedUrls: string[]): Promise<boolean> {
+    const objects = uploadedUrls.map((url) => {
+        const urlObj = new URL(url);
+        return { Key: decodeURIComponent(urlObj.pathname.slice(1)) }; // remove leading slash
+    });
 
-        const params = {
-            Bucket: this.bucketName,
-            Delete: {
-                Objects: objects,
-                Quiet: false,
-            },
-        };
+    const params = {
+        Bucket: this.bucketName,
+        Delete: {
+            Objects: objects,
+            Quiet: false,
+        },
+    };
 
-        try {
-            await this.s3.deleteObjects(params).promise();
-            this.logger.log(`🧹 Deleted S3 objects: ${JSON.stringify(objects.map(o => o.Key))}`);
-        } catch (err) {
-            this.logger.error('❌ Failed to delete from S3', err.stack);
-            this.logger.error(`Failed to delete this images ${JSON.stringify(uploadedUrls)}`)
-        }
+    try {
+        await this.s3.deleteObjects(params).promise();
+        this.logger.log(`🧹 Deleted S3 objects: ${JSON.stringify(objects.map(o => o.Key))}`);
+        return true;
+    } catch (err) {
+        this.logger.error('❌ Failed to delete from S3', err.stack);
+        this.logger.error(`Failed to delete these images: ${JSON.stringify(uploadedUrls)}`);
+        return false;
     }
+}
+
 }

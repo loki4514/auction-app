@@ -4,13 +4,17 @@ import { ResponseInterceptor } from './shared/infrastructure/interceptors/respon
 import { HttpExceptionFilter } from './shared/infrastructure/filters/http.filter';
 import { ApplicationLogger } from './shared/infrastructure/logger/application.logger';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import * as express from 'express';
 
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const logger = new ApplicationLogger();
-    app.useLogger(logger);
-  app.useGlobalInterceptors(new ResponseInterceptor() )
+  // app.use(express.json({ limit: '10mb' }));
+  // app.use(express.urlencoded({ extended: true }));
+  app.useLogger(logger);
+
+  app.useGlobalInterceptors(new ResponseInterceptor())
   app.useGlobalFilters(new HttpExceptionFilter())
 
   const config = new DocumentBuilder()

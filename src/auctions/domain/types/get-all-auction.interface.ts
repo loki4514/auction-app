@@ -40,6 +40,13 @@ export interface IGetAllAuction {
     pagination : IPageination | null
 }
 
+export interface IGetAuction {
+    success: boolean,
+    status: number,
+    data: AuctionWithImages | null,
+    message : string,
+}
+
 export interface IAllAuctionResponse{
     success: boolean,
     status: number,

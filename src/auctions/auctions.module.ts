@@ -22,12 +22,27 @@ import { GetAuctionsController } from "./interface/controllers/get-all-auctions.
 import { IGetAllAuctions } from "./domain/repository/get-auctions.repostory";
 import { GetAllAuctions } from "./infrastructure/prisma/get-all-auctions.prisma";
 import { GetAllAuctionUsecase } from "./application/usecase/get-all-auctions.usecase";
+import { IDeleteAuctionImage, IEditAuctionImage, IGetAuctionImageById, IGetNumberOfAuctionImage } from "./domain/repository/edit-auction-image.repository";
+import { EditAuctionImageRepository } from "./infrastructure/prisma/edit-auction-image";
+import { GetNumberofAuctionImagesRepository } from "./infrastructure/prisma/auction-total-image.prisma";
+import { RedisModule } from "src/shared/redis.module";
+import { IEditAuction } from "./domain/repository/edit-auction.repository";
+import { UpdateAuctionRepository } from "./infrastructure/prisma/update-auction.prisma";
+import { DeleteAuctionImageRepository } from "./infrastructure/prisma/auction-image-deletion.primsa";
+import { AuctionImageUpdateController } from "./interface/controllers/update-auction-image.controller";
+import { AuctionImageUpdateUseCase } from "./application/usecase/update-auction.image.usecase";
+import { GetAuctionImageById } from "./infrastructure/prisma/get-auction-image-by-id.prisma";
+import { UpdateAuctionController } from "./interface/controllers/update-auction.controller";
+import { UpdateAuctionUseCase } from "./application/usecase/update-auction.usecase";
+import { BidAuctionController } from "./interface/controllers/bid-auction.controller";
+import { BidAuctionUsecase } from "./application/usecase/bid-auction.usecase";
 
 
 
 @Module({
-    imports : [AuthModule],
-    controllers : [CreateAuctionController, AuctionImageUploadController, GetAuctionsController],
+    imports : [AuthModule, RedisModule],
+    controllers : [CreateAuctionController, AuctionImageUploadController, GetAuctionsController, 
+        AuctionImageUpdateController, UpdateAuctionController, BidAuctionController],
     providers : [ApplicationLogger,
         CreateAuctionUsecase,
         AuctionImageUploadUseCase,
@@ -42,6 +57,13 @@ import { GetAllAuctionUsecase } from "./application/usecase/get-all-auctions.use
         GetAuctionsRepository,
         GetAllAuctions,
         S3Service,
+        EditAuctionImageRepository,
+        GetNumberofAuctionImagesRepository,
+        DeleteAuctionImageRepository,
+        AuctionImageUpdateUseCase,
+        UpdateAuctionUseCase,
+        GetAuctionImageById,
+        BidAuctionUsecase,
         {
             provide : IGetAuctionDetails,
             useClass : GetAuctionDetailsRepository 
@@ -61,9 +83,31 @@ import { GetAllAuctionUsecase } from "./application/usecase/get-all-auctions.use
         {
             provide : IGetAllAuctions,
             useClass : GetAllAuctions
+        },
+        {
+            provide : IEditAuctionImage,
+            useClass : EditAuctionImageRepository,
+        },
+        {
+            provide : IGetNumberOfAuctionImage,
+            useClass : GetNumberofAuctionImagesRepository
+        },
+        {
+            provide : IEditAuction,
+            useClass : UpdateAuctionRepository
+        },
+        {
+            provide : IDeleteAuctionImage,
+            useClass : DeleteAuctionImageRepository
+        },
+        {
+            provide : IGetAuctionImageById,
+            useClass : GetAuctionImageById
         }
     ],
-    exports : [CreateAuctionUsecase, ApplicationLogger, TokenService, AuctionImageUploadUseCase, S3Service, GetAllAuctionUsecase]
+    exports : [CreateAuctionUsecase, ApplicationLogger, TokenService, AuctionImageUploadUseCase, S3Service, GetAllAuctionUsecase,
+        AuctionImageUpdateUseCase,UpdateAuctionUseCase, BidAuctionUsecase
+    ]
 
 })
 

@@ -1,5 +1,7 @@
 import { auction, product_type } from "@prisma/client"; // Prisma's enum
 import { AuctionEntity, ProductType } from "src/auctions/domain/entity/auction.entity";
+import moment from 'moment-timezone';
+import { AuctionUpdateDetailsDto } from "src/auctions/interface/dtos/auction-update.dto";
 
 // Convert ProductType (TS Enum) to product_type (Prisma Enum)
 function mapProductTypeToPrisma(type: ProductType): product_type {
@@ -19,19 +21,45 @@ export class AuctionMappers {
             auction_details: toOrmEntity.auction_details!,
             auction_product_type: mapProductTypeToPrisma(toOrmEntity.auction_product_type), // Safe conversion
             max_participants: toOrmEntity.max_participants!,
-            auction_type : toOrmEntity.auction_type,
+            auction_type: toOrmEntity.auction_type,
             min_next_bid_increment: toOrmEntity.bid_increment,
             initial_bid_amount: toOrmEntity.min_bid_amount,
             currency: toOrmEntity.currency,
-            status : toOrmEntity.auction_status,
+            status: toOrmEntity.auction_status,
             auction_start_time: toOrmEntity.auction_start_time,
             auction_end_time: toOrmEntity.auction_end_time!,
             auctioneer_id: toOrmEntity.auctioneer_id,
-            rejection_status : false,
-            rejection_reason : null,
+            rejection_status: false,
+            rejection_reason: null,
             created_at: new Date(), // Defaulting to now()
             updated_at: new Date(), // Defaulting to now()
         };
+    }
+
+    ToORMForUpdate(toOrmEntity: Partial<AuctionUpdateDetailsDto>): Partial<auction> {
+        const updatePayload: Partial<auction> = {};
+
+
+        if (toOrmEntity.auction_name !== undefined) updatePayload.auction_name = toOrmEntity.auction_name;
+        if (toOrmEntity.auction_details !== undefined) updatePayload.auction_details = toOrmEntity.auction_details;
+        if (toOrmEntity.auction_product_type !== undefined)
+            updatePayload.auction_product_type = mapProductTypeToPrisma(toOrmEntity.auction_product_type);
+        if (toOrmEntity.max_participants !== undefined) updatePayload.max_participants = toOrmEntity.max_participants;
+        if (toOrmEntity.auction_type !== undefined) updatePayload.auction_type = toOrmEntity.auction_type;
+        if (toOrmEntity.bid_increment !== undefined) updatePayload.min_next_bid_increment = toOrmEntity.bid_increment;
+        if (toOrmEntity.min_bid_amount !== undefined) updatePayload.initial_bid_amount = toOrmEntity.min_bid_amount;
+        if (toOrmEntity.currency !== undefined) updatePayload.currency = toOrmEntity.currency;
+        if (toOrmEntity.auction_status !== undefined) updatePayload.status = toOrmEntity.auction_status;
+        if (toOrmEntity.auction_start_time !== undefined && typeof toOrmEntity.auction_start_time === 'string') {
+            updatePayload.auction_start_time = moment.tz(toOrmEntity.auction_start_time, 'Asia/Kolkata').toDate();
+        }
+
+        // if (toOrmEntity.auction_end_time !== undefined) updatePayload.auction_end_time = toOrmEntity.auction_end_time;
+
+
+        updatePayload.updated_at = new Date(); // Always update this field
+
+        return updatePayload;
     }
 
     FromORM(fromOrmEntity: auction): AuctionEntity {
@@ -42,12 +70,12 @@ export class AuctionMappers {
             auction_product_type: mapProductTypeFromPrisma(fromOrmEntity.auction_product_type), // Safe conversion
             max_participants: fromOrmEntity.max_participants!,
             bid_increment: fromOrmEntity.min_next_bid_increment,
-            min_bid_amount : fromOrmEntity.initial_bid_amount,
+            min_bid_amount: fromOrmEntity.initial_bid_amount,
             currency: fromOrmEntity.currency,
             auction_status: fromOrmEntity.status,
             auction_start_time: fromOrmEntity.auction_start_time,
             auction_end_time: fromOrmEntity.auction_end_time!,
-            auction_type : fromOrmEntity.auction_type,
+            auction_type: fromOrmEntity.auction_type,
             auctioneer_id: fromOrmEntity.auctioneer_id, // You may need to fetch the auctioneer name separately
         };
     }
