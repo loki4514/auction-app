@@ -36,6 +36,7 @@ import { UpdateAuctionController } from "./interface/controllers/update-auction.
 import { UpdateAuctionUseCase } from "./application/usecase/update-auction.usecase";
 import { BidAuctionController } from "./interface/controllers/bid-auction.controller";
 import { BidAuctionUsecase } from "./application/usecase/bid-auction.usecase";
+import { GetBidsUsecase } from "./application/usecase/get-bid-auction.usecase";
 
 
 
@@ -64,6 +65,7 @@ import { BidAuctionUsecase } from "./application/usecase/bid-auction.usecase";
         UpdateAuctionUseCase,
         GetAuctionImageById,
         BidAuctionUsecase,
+        GetBidsUsecase,
         {
             provide : IGetAuctionDetails,
             useClass : GetAuctionDetailsRepository 
@@ -106,7 +108,7 @@ import { BidAuctionUsecase } from "./application/usecase/bid-auction.usecase";
         }
     ],
     exports : [CreateAuctionUsecase, ApplicationLogger, TokenService, AuctionImageUploadUseCase, S3Service, GetAllAuctionUsecase,
-        AuctionImageUpdateUseCase,UpdateAuctionUseCase, BidAuctionUsecase
+        AuctionImageUpdateUseCase,UpdateAuctionUseCase, BidAuctionUsecase, GetBidsUsecase
     ]
 
 })

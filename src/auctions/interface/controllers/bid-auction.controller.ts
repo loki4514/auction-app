@@ -34,7 +34,7 @@ export class BidAuctionController {
         @Body("amount") amount: number,
         @Param("auctionId") auctionId: string
     ) {
-        console.log(req.user)
+        
         const userId = req.user.id;
 
         if (!amount || amount <= 0) {

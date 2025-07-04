@@ -69,8 +69,6 @@ export class BidAuctionUsecase {
 
 
             if (amount > highestScore) {
-
-
                 // Check if bid increment is too small
                 const minimumRequiredBid = highestScore + initial_bid_amount;
                 if (amount < minimumRequiredBid) {
