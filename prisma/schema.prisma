@@ -82,6 +82,7 @@ model users {
   // Relations
   account                accounts      @relation(fields: [account_id], references: [account_id])
   payments               payment[]
+  auth_history         user_auth_history[]
 
   created_at             DateTime      @default(now())           
   updated_at             DateTime      @updatedAt  

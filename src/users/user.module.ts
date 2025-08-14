@@ -28,6 +28,8 @@ import { MailTemplateServices } from './infrastructure/persistance/mail/mail.tem
 import { VerifyUserMapper } from './infrastructure/persistance/mappers/verify-user.mapper';
 import { VerifyPasswordMapper } from './infrastructure/persistance/mappers/verify-password.mapper';
 import { QueueModule } from 'src/shared/queue/queue.module';
+import { ICompanyRepository } from './domain/repository/company.repository';
+import { CompanyRepository } from './infrastructure/persistance/prisma/prisma-account.repository';
 
 @Module({
     imports: [UtilsModule, QueueModule],
@@ -43,9 +45,14 @@ import { QueueModule } from 'src/shared/queue/queue.module';
         PasswordResetUsecase,
         VerifyUserUseCase,
         VerifyUserMapper,
+        CompanyRepository,
         {
             provide: IUserRepository,
             useClass: UserPrismaRepository,
+        },
+        {
+            provide : ICompanyRepository,
+            useClass : CompanyRepository
         },
         {
             provide: VerifyUserRepository,

@@ -13,7 +13,7 @@ export abstract class ICompanyRepository {
         data?: AccountEntity | null;
     }>;
 
-    abstract updateCompany(company_details: UpdateAccountDTO): Promise<void>;
+    abstract updateCompany(company_details: UpdateAccountDTO): Promise<boolean>;
 
     abstract becomeAuctioneer(account_id : string, user_id : string) : Promise<boolean>;
 

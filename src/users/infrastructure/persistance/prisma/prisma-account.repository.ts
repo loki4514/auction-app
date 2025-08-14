@@ -65,7 +65,7 @@ export class CompanyRepository extends ICompanyRepository {
                     created_at: istNow,
                     updated_at: istNow,
                     is_used_free_plan: false,// You may want to pass this from config or params
-                    company_name: "Temporary",     
+                    company_name: "Temporary",
                 },
             });
 
@@ -76,9 +76,9 @@ export class CompanyRepository extends ICompanyRepository {
         }
     }
 
-    async updateCompany(company_details: UpdateAccountDTO): Promise<void> {
+    async updateCompany(company_details: UpdateAccountDTO): Promise<boolean> {
         try {
-            const { account_id, ...updates } = company_details;
+            const { account_id } = company_details;
 
             const existing = await this.prisma.accounts.findUnique({
                 where: { account_id },
@@ -92,38 +92,46 @@ export class CompanyRepository extends ICompanyRepository {
                 where: { account_id },
                 data: {
                     ...AccountMappers.toPartialORM(company_details),
-                    updated_at: moment().tz("Asia/Kolkata").toDate(),
+                    updated_at: moment().tz('Asia/Kolkata').toDate(),
                 },
             });
+
+            return true; // ✅ return boolean for success
         } catch (error) {
-            logger.error("Failed to update company account", { company_details, error });
-            throw new InternalServerErrorException("Error while updating company account");
+            logger.error(
+                error,
+                'Failed to update company account',
+                CompanyRepository.name,
+            );
+            throw new InternalServerErrorException(
+                'Error while updating company account',
+            );
         }
     }
 
     async becomeAuctioneer(account_id: string, user_id: string): Promise<boolean> {
-    try {
-        const result = await this.prisma.$transaction(async (tx) => {
-            // 1️⃣ Update account type
-            await tx.accounts.update({
-                where: { account_id },
-                data: { account_type: "auctioneer" },
+        try {
+            const result = await this.prisma.$transaction(async (tx) => {
+                // 1️⃣ Update account type
+                await tx.accounts.update({
+                    where: { account_id },
+                    data: { account_type: "auctioneer" },
+                });
+
+                // 2️⃣ Update user role for the given user_id
+                await tx.users.update({
+                    where: { user_id },
+                    data: { user_role: "admin" },
+                });
+
+                return true;
             });
 
-            // 2️⃣ Update user role for the given user_id
-            await tx.users.update({
-                where: { user_id },
-                data: { user_role: "admin" },
-            });
-
-            return true;
-        });
-
-        logger.log(`Account ${account_id} is now auctioneer and user ${user_id} is admin`);
-        return result;
-    } catch (error) {
-        logger.error("Failed to fulfill auctioneer request", { account_id, user_id, error });
-        throw new InternalServerErrorException("Error while becoming auctioneer");
+            logger.log(`Account ${account_id} is now auctioneer and user ${user_id} is admin`);
+            return result;
+        } catch (error) {
+            logger.error("Failed to fulfill auctioneer request", { account_id, user_id, error });
+            throw new InternalServerErrorException("Error while becoming auctioneer");
+        }
     }
-}
 }

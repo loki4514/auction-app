@@ -35,3 +35,18 @@ export const CreateUserSchema = z.object({
 });
 
 export type CreateUserDTO = z.infer<typeof CreateUserSchema>;
+
+
+
+
+export const UpdateUserSchema = z.object({
+    first_name: z.string().trim().optional(),
+    last_name: z.string().trim().nullable().optional(),
+    phone_number: z
+        .string()
+        .regex(/^\+?[1-9]\d{6,14}$/, { message: 'Invalid phone number' })
+        .optional(),
+    date_of_birth: z.coerce.date().nullable().optional(),
+});
+
+export type UserUpdateDto = z.infer<typeof UpdateUserSchema>;

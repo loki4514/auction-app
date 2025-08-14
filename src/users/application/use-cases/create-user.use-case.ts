@@ -3,7 +3,6 @@ import * as bcrypt from "bcrypt";
 import * as crypto from "crypto";
 import { ApplicationLogger } from "src/shared/infrastructure/logger/application.logger";
 import { TokenService } from "src/shared/utils/token.service";
-import { MailService } from "src/users/infrastructure/persistance/mail/mail.service";
 import { CreateUserDTO } from "src/users/interface/dtos/user.dto";
 import { UserDTO, UserEntity } from "src/users/domain/entity/user.entiy";
 import { CreateUserResponse } from "src/users/domain/types/use-case.reponse";
