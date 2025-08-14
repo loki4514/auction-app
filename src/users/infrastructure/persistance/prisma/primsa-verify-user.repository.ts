@@ -14,7 +14,7 @@ export class VerifyUserPrismaRepository extends VerifyUserRepository {
     }
 
     async findUserByToken(email: string, token: string): Promise<verifyUserReponse<verifyUserEntity>> {
-        const tokenRecord = await this.prisma.accounts.findFirst({
+        const tokenRecord = await this.prisma.users.findFirst({
             where: {
                 email: email,
                 verification_token: token
@@ -35,11 +35,10 @@ export class VerifyUserPrismaRepository extends VerifyUserRepository {
 
         if (!user) return { success: false, message: "User not found" };
 
-        const updatedUser = await this.prisma.accounts.update({
+        const updatedUser = await this.prisma.users.update({
             where: { email: email },
             data: {
-                is_verified: true,
-                account_status: 'active'
+                user_status : 'verified'
             }
         });
 

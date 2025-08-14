@@ -1,69 +1,87 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, InternalServerErrorException, BadRequestException } from "@nestjs/common";
 import { PrismaService } from "src/shared/infrastructure/database/prisma/prisma.service";
-import { UserEntity } from "src/users/domain/entity/user.entiy";
-import { UserRepository } from "src/users/domain/repository/user.repository";
+import { CreateUserDTO, UpdateUserDTO, UserEntity } from "src/users/domain/entity/user.entiy";
+import { IUserRepository } from "src/users/domain/repository/user.repository";
+import { ApplicationLogger } from "src/shared/infrastructure/logger/application.logger";
+import { UserMappers } from "../mappers/user-mappers";
 
 
-
-
+const logger = new ApplicationLogger();
 
 @Injectable()
-export class UserPrismaRepository extends UserRepository {
+export class UserPrismaRepository extends IUserRepository {
     constructor(private readonly prisma: PrismaService) {
         super();
     }
 
-    async findByEmail(email: string): Promise<{ success: boolean; message?: string; status?: number; data?: UserEntity; debug?: string }> {
+    async findByEmail(email: string): Promise<{ data: UserEntity | null; debug?: string }> {
         try {
-            const user = await this.prisma.accounts.findFirst({
-                where: {
-                    OR: [{ email }],
+            const user = await this.prisma.users.findFirst({
+                where: { email }
+            });
+
+            return { data: UserMappers.fromORM(user) };
+        } catch (error) {
+            logger.error("Failed to find user by email", { email, error });
+            throw new InternalServerErrorException("Error while finding user by email");
+        }
+    }
+
+
+
+    async findByUserPhoneNumber(phone_number: string): Promise<{ data: UserEntity | null }> {
+        try {
+            const user = await this.prisma.users.findFirst({
+                where: { phone_number }
+            });
+            return { data: UserMappers.fromORM(user) };
+        } catch (error) {
+            logger.error("Failed to find user by phone", { phone_number, error });
+            throw new InternalServerErrorException("Error while finding user by phone");
+        }
+    }
+
+
+
+    async create(user: CreateUserDTO): Promise<{ data: UserEntity | null; debug?: string }> {
+        try {
+            const createdUser = await this.prisma.users.create({
+                data: user
+            });
+
+            return {
+                data: UserMappers.fromORM(createdUser),
+            };
+        } catch (error) {
+            logger.error("User creation failed", { user, error });
+            throw new BadRequestException("User could not be created");
+        }
+    }
+
+    async updateUser(user_id: string, user: UpdateUserDTO): Promise<{ status?: number; update_status: boolean }> {
+        try {
+            // Check if user exists
+            const existingUser = await this.prisma.users.findUnique({
+                where: { user_id }
+            });
+
+            if (!existingUser) {
+                return { status: 404, update_status: false };
+            }
+
+            // Update user
+            await this.prisma.users.update({
+                where: { user_id },
+                data: {
+                    ...UserMappers.toPartialORM(user),
+                    updated_at: new Date(),
                 },
             });
 
-
-            if (user) {
-                return {
-                    success: false,
-                    message: 'User found',
-                    status: 409,
-                };
-            }
-
-            return {
-                success: true,
-                message : 'user not found'
-            };
+            return { status: 200, update_status: true };
         } catch (error) {
-            console.error('Error finding user by username or email:', error);
-            return {
-                success: false,
-                message: 'Database error while searching for user',
-                status: 500,
-                debug: error instanceof Error ? error.message : String(error),
-            };
-        }
-    }
-
-    async create(user: UserEntity): Promise<{ success: boolean; message?: string; status?: number; data?: UserEntity; debug?: string }> {
-        try {
-            const createdUser = await this.prisma.accounts.create({ data: user });
-
-            return {
-                success: true,
-                data: createdUser,
-            };
-        } catch (error) {
-            console.error('Error creating user:', error);
-            return {
-                success: false,
-                message: 'Database error while creating user',
-                status: 500,
-                debug: error instanceof Error ? error.message : String(error),
-            };
+            logger.error("User update failed", { user_id, user, error });
+            throw new InternalServerErrorException("Error while updating user");
         }
     }
 }
-
-
-

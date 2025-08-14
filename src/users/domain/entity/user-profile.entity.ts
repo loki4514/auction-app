@@ -1,15 +1,10 @@
 export interface UserProfileEntity {
     account_id: string;
+    user_id: string;
     phone_number: string | null;
-    country_code: string | null;
     date_of_birth: Date | null;
 
-    // Address Information
-    street_address: string | null;
-    city: string | null;
-    state: string | null;
-    country: string | null;
-    zip_code: string | null;
+    // Address Informat
 
     // Login Audit Logs
     failed_login_attempts: number;
@@ -17,4 +12,15 @@ export interface UserProfileEntity {
     current_login_ip: string | null;
     previous_login_ip: string | null;
     last_password_reset_at: Date | null;
+}
+
+
+export interface CreateUserDTO {
+    account_id: string;         // required to associate user with an account
+    email: string;
+    password_hash: string;
+    first_name: string;
+    last_name?: string;
+    user_role?: 'bidder' | 'auctioneer' | 'admin';  // optional override
+    is_verified: boolean
 }

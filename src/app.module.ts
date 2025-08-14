@@ -15,6 +15,8 @@ import { AuctionImageUploadController } from './auctions/interface/controllers/u
 import { GetAuctionsController } from './auctions/interface/controllers/get-all-auctions.controller';
 import { CacheModule } from '@nestjs/cache-manager';
 import { redisStore } from 'cache-manager-redis-store';
+import { BullModule } from '@nestjs/bull';
+import { QueueModule } from './shared/queue/queue.module';
 
 
 
@@ -28,6 +30,13 @@ import { redisStore } from 'cache-manager-redis-store';
       //   abortEarly: true, // Stops validation on the first error
       // },
     }),
+     // BullMQ Redis configuration
+    BullModule.forRoot({
+      redis: {
+        host: 'localhost',
+        port: 6379,
+      },
+    }),
     CacheModule.register({
       store : async() => {
         await redisStore({
@@ -39,6 +48,7 @@ import { redisStore } from 'cache-manager-redis-store';
       }
     }),
     AuctionModule,
+    QueueModule,
     UserModule,
   AuthModule], // ✅ Import UserModule here
   controllers: [AppController, UserController, PasswordResetControllers, VerifyUserController, AuthController, 

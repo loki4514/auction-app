@@ -16,7 +16,6 @@ export class MailService {
     async sendVerificationEmail(email: string, token: string, name: string): Promise<MailFuncResponse> {
         const mailContent = this.mailTemplateService.generateVerificationEmail(email, token, name);
 
-       
         if (!mailContent) {
             this.logger.warn(`Failed to generate email content for verification email to ${email}`);
             return { status: false, message: 'Failed to generate email content.' };

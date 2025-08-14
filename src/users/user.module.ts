@@ -14,7 +14,7 @@ import { VerifyUserController } from './interface/controllers/verify-user.contro
 import { PasswordResetControllers } from './interface/controllers/reset-password.controller';
 
 // Repositories (Interfaces & Implementations)
-import { UserRepository } from './domain/repository/user.repository';
+import { IUserRepository } from './domain/repository/user.repository';
 import { UserPrismaRepository } from './infrastructure/persistance/prisma/prisma-user.repository';
 import { VerifyUserRepository } from './domain/repository/verify-user.repository';
 import { VerifyUserPrismaRepository } from './infrastructure/persistance/prisma/primsa-verify-user.repository';
@@ -27,9 +27,10 @@ import { MailService } from './infrastructure/persistance/mail/mail.service';
 import { MailTemplateServices } from './infrastructure/persistance/mail/mail.template.service';
 import { VerifyUserMapper } from './infrastructure/persistance/mappers/verify-user.mapper';
 import { VerifyPasswordMapper } from './infrastructure/persistance/mappers/verify-password.mapper';
+import { QueueModule } from 'src/shared/queue/queue.module';
 
 @Module({
-    imports: [UtilsModule],
+    imports: [UtilsModule, QueueModule],
     controllers: [UserController, VerifyUserController, PasswordResetControllers],
     providers: [
         UtilsModule,
@@ -43,7 +44,7 @@ import { VerifyPasswordMapper } from './infrastructure/persistance/mappers/verif
         VerifyUserUseCase,
         VerifyUserMapper,
         {
-            provide: UserRepository,
+            provide: IUserRepository,
             useClass: UserPrismaRepository,
         },
         {

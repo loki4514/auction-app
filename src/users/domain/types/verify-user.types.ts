@@ -13,7 +13,7 @@ export interface verifyUserEntity {
 export interface userVerificationStatus {
     email: string,
     full_name : string,
-    is_verified: boolean
+    is_verified: string,
 }
 
 export interface resendVerifyTokenResponse {

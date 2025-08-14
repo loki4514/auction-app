@@ -1,10 +1,10 @@
-import { accounts } from '@prisma/client'; // Prisma model
+import { users } from '@prisma/client'; // Prisma model
 import { userVerificationStatus, verifyUserEntity } from 'src/users/domain/types/verify-user.types';
 
 
 
 export class VerifyUserMapper {
-    toEntity(prismaUser: accounts): verifyUserEntity {
+    toEntity(prismaUser: users): verifyUserEntity {
         return {
             email : prismaUser.email,
             token: prismaUser.verification_token,
@@ -13,11 +13,11 @@ export class VerifyUserMapper {
         }
     }
 
-    accountStatus(primsaUser : accounts) : userVerificationStatus {
+    accountStatus(primsaUser : users) : userVerificationStatus {
         return {
             email : primsaUser.email,
             full_name : `${primsaUser.first_name} ${primsaUser.last_name}`,
-            is_verified : primsaUser.is_verified
+            is_verified : primsaUser.user_status
         }
     }
 }

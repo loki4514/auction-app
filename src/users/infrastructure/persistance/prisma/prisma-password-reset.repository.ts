@@ -14,7 +14,7 @@ export class PasswordResetPrismaRepository extends PasswordResetInterface {
 
     async findByEmail(email: string) : Promise<boolean> {
         // Convert user object to boolean
-        let user = await this.prisma.accounts.findFirst({
+        let user = await this.prisma.users.findFirst({
             where: { email: email }
         });
 
@@ -76,7 +76,7 @@ export class VerifyAndUpdatePasswordPrismaRepository extends verifyAndUpdatePass
 
     async updatePassword(hashedPassword: string, email: string): Promise<{ success: boolean; message: string, status : Number }> {
         try {
-            const updateResult = await this.prisma.accounts.update({
+            const updateResult = await this.prisma.users.update({
                 where: { email },
                 data: { password_hash: hashedPassword },
             });
