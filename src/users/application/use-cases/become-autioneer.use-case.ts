@@ -4,7 +4,7 @@ import { ApplicationLogger } from 'src/shared/infrastructure/logger/application.
 import { ICompanyRepository } from 'src/users/domain/repository/company.repository';
 
 @Injectable()
-export class AuctionService {
+export class BecomeAuctioneerService {
     constructor(
         private readonly companyRepository: ICompanyRepository,
         private readonly logger: ApplicationLogger,
@@ -19,7 +19,7 @@ export class AuctionService {
         if (!account_id || !user_id) {
             this.logger.log(
                 `Failed to become auctioneer — Missing account_id or user_id at ${now}`,
-                AuctionService.name,
+                BecomeAuctioneerService.name,
             );
             return {
                 success: false,
@@ -38,7 +38,7 @@ export class AuctionService {
             if (!repoResult) {
                 this.logger.log(
                     `Failed to become auctioneer for account ${account_id} and user ${user_id} at ${now}`,
-                    AuctionService.name,
+                    BecomeAuctioneerService.name,
                 );
                 return {
                     success: false,
@@ -49,7 +49,7 @@ export class AuctionService {
 
             this.logger.log(
                 `User ${user_id} became an auctioneer for account ${account_id} at ${now}`,
-                AuctionService.name,
+                BecomeAuctioneerService.name,
             );
             return {
                 success: true,
@@ -60,7 +60,7 @@ export class AuctionService {
             this.logger.error(
                 error,
                 `Error while making user ${user_id} an auctioneer for account ${account_id} at ${now}`,
-                AuctionService.name,
+                BecomeAuctioneerService.name,
             );
             return {
                 success: false,

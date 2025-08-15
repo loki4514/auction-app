@@ -22,11 +22,10 @@ export class EmailQueueService {
         });
     }
 
-    async addPasswordResetEmailJob(email: string, resetToken: string, fullName: string): Promise<void> {
+    async addPasswordResetEmailJob(email: string, resetToken: string): Promise<void> {
         await this.emailQueue.add('send-password-reset-email', {
             email,
-            resetToken,
-            fullName,
+            resetToken
         }, {
             attempts: 3,
             backoff: {

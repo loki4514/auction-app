@@ -5,7 +5,7 @@ import { ICompanyRepository } from 'src/users/domain/repository/company.reposito
 import { CompanyUpdateDto } from 'src/users/interface/dtos/company-update.dto';
 import { UpdateAccountDTO } from "src/users/domain/entity/account.entity";
 @Injectable()
-export class CompanyService {
+export class UpdateCompanyService {
     constructor(
         private readonly companyRepository: ICompanyRepository,
         private readonly logger: ApplicationLogger,
@@ -21,7 +21,7 @@ export class CompanyService {
             if (!updatedCount) {
                 this.logger.log(
                     `No company found to update at ${now}`,
-                    CompanyService.name,
+        
                 );
 
                 return {
@@ -33,7 +33,7 @@ export class CompanyService {
 
             this.logger.log(
                 `Company updated successfully at ${now}`,
-                CompanyService.name,
+    
             );
 
             return {
@@ -45,7 +45,7 @@ export class CompanyService {
             this.logger.error(
                 error,
                 `Failed to update company at ${now}`,
-                CompanyService.name,
+    
             );
 
             return {

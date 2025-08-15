@@ -7,5 +7,5 @@ export abstract class PasswordResetInterface {
 
 export abstract class verifyAndUpdatePassword {
     abstract verifyPasswordToken(email: string, token: string): Promise<passwordResetResponse>
-    abstract updatePassword(password: string, email: string): Promise<{ success: boolean; message: string, status: Number }>
+    abstract updatePassword(password: string, email: string): Promise<{ success: boolean; message: string, status: number }>
 }

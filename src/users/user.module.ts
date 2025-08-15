@@ -30,10 +30,14 @@ import { VerifyPasswordMapper } from './infrastructure/persistance/mappers/verif
 import { QueueModule } from 'src/shared/queue/queue.module';
 import { ICompanyRepository } from './domain/repository/company.repository';
 import { CompanyRepository } from './infrastructure/persistance/prisma/prisma-account.repository';
+import { UpdateCompanyController } from './interface/controllers/company-update.controller';
+import { UpdateUserController } from './interface/controllers/user-update.controller';
 
 @Module({
     imports: [UtilsModule, QueueModule],
-    controllers: [UserController, VerifyUserController, PasswordResetControllers],
+    controllers: [UserController, VerifyUserController, PasswordResetControllers, UpdateCompanyController,
+        UpdateUserController
+    ],
     providers: [
         UtilsModule,
         MailTemplateServices,

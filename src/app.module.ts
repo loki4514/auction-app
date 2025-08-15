@@ -3,9 +3,6 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ConfigModule } from '@nestjs/config';
 import { UserModule } from './users/user.module';
-import { UserController } from './users/interface/controllers/user.controller';
-import { PasswordResetControllers } from './users/interface/controllers/reset-password.controller';
-import { VerifyUserController } from './users/interface/controllers/verify-user.controller';
 import { AuthModule } from './auth/auth.module';
 import { AuthController } from './auth/interface/controllers/auth.controller';
 import { AppConfig } from './shared/config/config';
@@ -51,7 +48,7 @@ import { QueueModule } from './shared/queue/queue.module';
     QueueModule,
     UserModule,
   AuthModule], // ✅ Import UserModule here
-  controllers: [AppController, UserController, PasswordResetControllers, VerifyUserController, AuthController, 
+  controllers: [AppController, AuthController, 
     CreateAuctionController, AuctionImageUploadController, GetAuctionsController],
   providers: [AppService],
 })
