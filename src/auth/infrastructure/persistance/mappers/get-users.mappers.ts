@@ -1,27 +1,30 @@
-import { accounts } from "@prisma/client";
+import { users } from "@prisma/client";
 
 export class GetUserMappers {
-    toGetUserEntity(accounts: accounts) {
+    /**
+     * Map user entity for login purpose (includes hashed password)
+     */
+    toGetUserEntity(user: users) {
         return {
-            user_id: accounts.account_id,
-            email: accounts.email,
-            password: accounts.password_hash,
-            account_status: accounts.is_verified,
-            user_role: accounts.user_role
-
-        }
-
+            user_id: user.account_id,
+            email: user.email,
+            password: user.password_hash, // required for login validation
+            account_status: user.user_status,
+            user_role: user.user_role,
+            full_name: `${user.first_name} ${user.last_name}`.trim(),
+        };
     }
 
-    getUserEntity(accounts : accounts){
+    /**
+     * Map basic user details (e.g., for displaying account info after login)
+     */
+    toBasicUserEntity(user: users) {
         return {
-            user_id : accounts.account_id,
-            email : accounts.email,
-            account_status : accounts.is_verified,
-            user_role : accounts.user_role
-            
-        }
+            user_id: user.account_id,
+            email: user.email,
+            account_status: user.user_status,
+            user_role: user.user_role,
+            full_name: `${user.first_name} ${user.last_name}`.trim(),
+        };
     }
-
 }
-

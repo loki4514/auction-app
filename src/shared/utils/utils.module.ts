@@ -5,6 +5,7 @@ import { TokenService } from './token.service';
 import { PasswordHasher } from './password.hasher';
 import { AuthService } from './google_auth_service';
 import { getISTDate } from './helper_function';
+import { RequestInfoService } from './request_meta_data';
 
 /**
  * UtilsModule
@@ -31,6 +32,7 @@ import { getISTDate } from './helper_function';
         TokenService,       // Generates and validates tokens (JWT, verification)
         PasswordHasher,     // Provides secure password hashing & comparison
         AuthService,
+        RequestInfoService
                 // Handles Google OAuth authentication flow
     ],
     exports: [
@@ -38,7 +40,8 @@ import { getISTDate } from './helper_function';
         TransporterService,
         TokenService,
         PasswordHasher,
-        AuthService
+        AuthService,
+        RequestInfoService
     ],
 })
 export class UtilsModule {}

@@ -26,8 +26,8 @@ export class LoginUser extends LoginRepository {
             const user = await this.findUserByEmail(email);
             if (!user) return this.userNotFoundResponse();
 
-            if (this.isAccountRestricted(user.account_status)) {
-                return this.restrictedAccountResponse(user.account_status);
+            if (this.isAccountRestricted(user.user_status)) {
+                return this.restrictedAccountResponse(user.user_status);
             }
 
             const mappedUser = this.loginMapper.toGetUserEntity(user);
@@ -43,7 +43,7 @@ export class LoginUser extends LoginRepository {
      * @returns User data or null
      */
     private async findUserByEmail(email: string) {
-        return this.prisma.accounts.findFirst({ where: { email } });
+        return this.prisma.users.findFirst({ where: { email } });
     }
 
     /**
