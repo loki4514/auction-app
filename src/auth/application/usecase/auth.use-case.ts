@@ -1,7 +1,7 @@
 import { Injectable, UnauthorizedException, InternalServerErrorException, NotFoundException, ForbiddenException } from "@nestjs/common";
 import { RedisSessionCreation } from "src/auth/domain/redis/redis_sessions";
 import { login_response } from "src/auth/domain/types/login.type";
-import { UserJwtEntity } from "src/auth/domain/types/user-entity.type";
+import { UserJwtEntity, LoginUserJwtEntity } from "src/auth/domain/types/user-entity.type";
 import { LoginUser } from "src/auth/infrastructure/persistance/prisma/loginPrisma.repository";
 import { ApplicationLogger } from "src/shared/infrastructure/logger/application.logger";
 import { PasswordHasher } from "src/shared/utils/password.hasher";
@@ -10,9 +10,6 @@ import { TokenService } from "src/shared/utils/token.service";
 import { Request } from "express"
 
 // Extended interface to include session info
-interface LoginUserJwtEntity extends UserJwtEntity {
-    session_id: string;
-}
 
 @Injectable()
 export class LoginUserUsecase {

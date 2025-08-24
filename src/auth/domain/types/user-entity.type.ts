@@ -5,13 +5,23 @@ export interface UserEntity {
     account_status: string;
     user_role: string;
     full_name : string;
-  }
+}
+
+export interface LoginUserJwtEntity{
+    user_id : string
+    email : string
+    account_status : string
+    user_role : string
+    full_name : string
+    session_id : string
+
+}
 
 export interface UserJwtEntity{
     user_id : string
     email : string
     account_status : string
     user_role : string
-    full_name : string;
+    full_name : string
 
 }

@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { IUserDetailsInterface } from "src/auth/domain/repository/get-user-detials.repository";
 import { getUsersReponse } from "src/auth/domain/types/getUser.type";
-import { UserJwtEntity } from "src/auth/domain/types/user-entity.type";
+import { UserEntity, UserJwtEntity } from "src/auth/domain/types/user-entity.type";
 import { PrismaService } from "src/shared/infrastructure/database/prisma/prisma.service";
 import { ApplicationLogger } from "src/shared/infrastructure/logger/application.logger";
 import { GetUserMappers } from "../mappers/get-users.mappers";
@@ -19,16 +19,16 @@ export class GetUserRepository extends IUserDetailsInterface{
     ){
         super()
     }
-    async getuserDetails(user_id: string): Promise<getUsersReponse<UserJwtEntity | null>> {
+    async getuserDetails(user_id: string): Promise<getUsersReponse<UserEntity | null>> {
 
         try {
-            const user_data = await this.primsa.accounts.findFirst({
+            const user_data = await this.primsa.users.findFirst({
                 where: { account_id : user_id }
             })
             if (!user_data) {
                 return { success: false, status: 404, message : `User authentication failed. Provided email address or user identifier is not registered.`, data: null }
             }
-            const mapped_user_data = this.entityMapper.getUserEntity(user_data)
+            const mapped_user_data = this.entityMapper.toGetUserEntity(user_data)
 
             return { success: true, status: 200, data: mapped_user_data, message : `user found` }
 

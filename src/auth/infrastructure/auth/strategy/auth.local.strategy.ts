@@ -1,19 +1,30 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
-import { Strategy } from 'passport-local';  // ✅ Use the correct strategy
+import { Strategy } from 'passport-local';
 import { LoginUserUsecase } from 'src/auth/application/usecase/auth.use-case';
 
 @Injectable()
-export class LocalStrategy extends PassportStrategy(Strategy, 'local') {  // ✅ Fix here
+export class LocalStrategy extends PassportStrategy(Strategy, 'local') {
     constructor(private readonly loginUseCase: LoginUserUsecase) {
-        super({ usernameField: 'email' }); // ✅ Ensure login is done via email
+        super({ 
+            usernameField: 'email',
+            passReqToCallback: true // ✅ This allows us to access the request object
+        });
     }
 
-    async validate(email: string, password: string) {
-        const user = await this.loginUseCase.login(email, password);
-        if (!user.success) {
-            throw new UnauthorizedException('Invalid email or password');
+    // ✅ Fixed signature: request is passed as first parameter when passReqToCallback: true
+    async validate(request: any, email: string, password: string) {
+        try {
+            const user = await this.loginUseCase.login(request, email, password);
+            
+            if (!user.success || !user.data) {
+                throw new UnauthorizedException('Invalid email or password');
+            }
+            
+            return user.data; // This will be attached to request.user
+        } catch (error) {
+            // Re-throw the error so Passport handles it properly
+            throw error;
         }
-        return user.data; // ✅ Return validated user
     }
 }
