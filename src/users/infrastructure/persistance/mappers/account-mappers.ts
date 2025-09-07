@@ -1,4 +1,4 @@
-import { accounts } from '@prisma/client';
+import { accounts, AccountStatus } from '@prisma/client';
 import { AccountEntity , UpdateAccountDTO} from 'src/users/domain/entity/account.entity';
 
 
@@ -13,6 +13,7 @@ export class AccountMappers {
             current_plan_id: prismaAccount.current_plan_id,
             is_used_free_plan: prismaAccount.is_used_free_plan,
             account_type: prismaAccount.account_type as 'bidder' | 'auctioneer',
+            account_status : prismaAccount.account_status,
 
             email: prismaAccount.email,
             phone_number: prismaAccount.phone_number,

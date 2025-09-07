@@ -12,20 +12,31 @@ import { AdminOnly, AuctionGuard } from "src/auth/infrastructure/auth/guard/rabc
 import { ZodValidationPipe } from "src/shared/pipes/zod-validation.pipe";
 import { AuctionDetailsDto, AuctionDetailsSchema } from "../dtos/auction.dto";
 
-// Custom request type extending Express Request to include `id`
+// ✅ Extend Express Request to include user & account data from guard
 interface AuthenticatedRequest extends Request {
-    id: string; // Assuming id is a string, change to number if needed
+    user_id: string;
+    account_id: string;
+    user_role: string;
 }
 
-@Controller('auction')
+@Controller("auction")
 export class CreateAuctionController {
-    constructor(private readonly createAuctionUseCase: CreateAuctionUsecase) { }
+    constructor(private readonly createAuctionUseCase: CreateAuctionUsecase) {}
 
-    @Post('create-auction')
+    @Post("create-auction")
     @UseGuards(AuctionGuard)
     @AdminOnly()
     @UsePipes(new ZodValidationPipe(AuctionDetailsSchema))
-    async createAuction(@Body() body: AuctionDetailsDto, @Req() req: AuthenticatedRequest) {
-        return await this.createAuctionUseCase.createAuction(body, req.id);
+    async createAuction(
+        @Body() auctionDetails: AuctionDetailsDto,
+        @Req() req: AuthenticatedRequest
+    ) {
+        // ✅ Pass `auctionDetails`, `user_id`, `account_id`, and `request`
+        return await this.createAuctionUseCase.createAuction(
+            auctionDetails,
+            req.user_id,
+            req.account_id,
+            req
+        );
     }
 }

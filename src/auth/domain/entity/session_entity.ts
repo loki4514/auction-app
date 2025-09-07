@@ -7,16 +7,18 @@ export interface SessionData {
     created_at: number;      // timestamp
     last_activity: number;   // timestamp
     status: 'active' | 'inactive';
-    location: {
-        status: string;
-        country: string;
-        regionName: string;
-        city: string;
-        query: string;
-    } | null;
+    location: clientLocation | null;
 }
 
 export interface ActiveSession extends SessionData {
     sessionId: string;
 }
 
+
+export interface clientLocation {
+        status: string;
+        country: string;
+        regionName: string;
+        city: string;
+        query: string;
+}

@@ -1,15 +1,24 @@
-import { Injectable, UnauthorizedException, InternalServerErrorException, NotFoundException, ForbiddenException } from "@nestjs/common";
+import {
+    Injectable,
+    UnauthorizedException,
+    InternalServerErrorException,
+    NotFoundException,
+    ForbiddenException,
+} from "@nestjs/common";
 import { RedisSessionCreation } from "src/auth/domain/redis/redis_sessions";
 import { login_response } from "src/auth/domain/types/login.type";
-import { UserJwtEntity, LoginUserJwtEntity } from "src/auth/domain/types/user-entity.type";
+import {
+    UserJwtEntity,
+    LoginUserJwtEntity,
+} from "src/auth/domain/types/user-entity.type";
 import { LoginUser } from "src/auth/infrastructure/persistance/prisma/loginPrisma.repository";
 import { ApplicationLogger } from "src/shared/infrastructure/logger/application.logger";
 import { PasswordHasher } from "src/shared/utils/password.hasher";
 import { RequestInfoService } from "src/shared/utils/request_meta_data";
 import { TokenService } from "src/shared/utils/token.service";
-import { Request } from "express"
-
-// Extended interface to include session info
+import { Request } from "express";
+import { ICompanyRepository } from "src/users/domain/repository/company.repository";
+import { AccountStatus } from "@prisma/client";
 
 @Injectable()
 export class LoginUserUsecase {
@@ -19,34 +28,61 @@ export class LoginUserUsecase {
         private readonly loginService: LoginUser,
         private readonly decrypt: PasswordHasher,
         private readonly redisSessions: RedisSessionCreation,
-        private readonly requestMeta: RequestInfoService
-    ) { }
+        private readonly requestMeta: RequestInfoService,
+        private readonly companyService: ICompanyRepository
+    ) {}
 
-    async login(request: Request, email: string, password: string): Promise<login_response<string | null, LoginUserJwtEntity | null>> {
+    async login(
+        request: Request,
+        email: string,
+        password: string
+    ): Promise<login_response<string | null, LoginUserJwtEntity | null>> {
         try {
             const user = await this.loginService.getUser(email);
 
-            // Always handle failure the same way
             if (!user.success || !user.data) {
-                // Don't reveal if email exists or not
-                throw new UnauthorizedException('Invalid email or password.');
+                throw new UnauthorizedException("Invalid email or password.");
             }
 
-            const { user_id, email: userEmail, password: hashedPassword, account_status, user_role, full_name } = user.data;
+            const {
+                user_id,
+                email: userEmail,
+                password: hashedPassword,
+                account_status,
+                user_role,
+                full_name,
+                account_id,
+            } = user.data;
 
-            // Validate password
+            // ✅ Validate password
             const isPasswordValid = await this.decrypt.compare(password, hashedPassword);
             if (!isPasswordValid) {
-                // Same error for wrong password
-                throw new UnauthorizedException('Invalid email or password.');
+                throw new UnauthorizedException("Invalid email or password.");
             }
 
-            // Check account status
-            if (account_status !== 'active') {
-                throw new ForbiddenException('Account is not active. Please contact support.');
+            // ✅ Check user's own account status
+            if (account_status !== AccountStatus.pending) {
+                throw new ForbiddenException("Your account is not active. Please contact support.");
             }
 
-            // Check session limits before creating new session
+            // ✅ Check company's account status
+            const company_res = await this.companyService.getCompanyById(account_id);
+
+            if (company_res.status !== 200 || !company_res.data) {
+                throw new NotFoundException("Company account not found. Please contact support.");
+            }
+
+            // ✅ Block users if company is not verified
+            if (
+                company_res.data.account_status !== AccountStatus.verified &&
+                company_res.data.account_status !== AccountStatus.pending
+            ) {
+                throw new ForbiddenException(
+                    "Your company account is not verified yet. Please wait for approval."
+                );
+            }
+
+            // ✅ Check session limits before creating new session
             const current_sessions = await this.redisSessions.checkSessionLimit(user_id, user_role);
             if (!current_sessions.withinLimit) {
                 throw new ForbiddenException(
@@ -54,13 +90,13 @@ export class LoginUserUsecase {
                 );
             }
 
-            // Extract request metadata
+            // ✅ Extract request metadata
             const requestInfo = await this.requestMeta.extractRequestInfo(request);
 
-            // Determine account_type based on user_role
+            // ✅ Determine account_type based on user_role
             const account_type = this.mapUserRoleToAccountType(user_role);
 
-            // Create new session
+            // ✅ Create new session
             const sessionResult = await this.redisSessions.createSession(
                 user_id,
                 user_role,
@@ -70,113 +106,140 @@ export class LoginUserUsecase {
                 requestInfo.ip
             );
 
-            // Prepare JWT payload with session info
+            // ✅ Prepare JWT payload
             const jwtUserData: LoginUserJwtEntity = {
                 user_id,
                 email: userEmail,
                 account_status,
                 user_role,
                 full_name,
-                session_id: sessionResult.session_id
+                account_id,
+                session_id: sessionResult.session_id,
             };
 
-            // Generate JWT token
+            // ✅ Generate JWT token
             const token = this.tokenService.generateJwtToken(jwtUserData);
 
-            this.logger.log(`User ${userEmail} logged in successfully with session ${sessionResult.session_id}`);
+            this.logger.log(
+                `User ${userEmail} logged in successfully with session ${sessionResult.session_id}`
+            );
 
             return {
                 success: true,
                 status: 200,
                 message: "User logged in successfully",
                 token,
-                data: jwtUserData
+                data: jwtUserData,
             };
-
         } catch (error) {
             this.logger.error(`Error during user login: ${error.message}`, error);
-            
-            // Re-throw known exceptions
-            if (error instanceof UnauthorizedException || 
-                error instanceof ForbiddenException || 
-                error instanceof NotFoundException) {
+
+            if (
+                error instanceof UnauthorizedException ||
+                error instanceof ForbiddenException ||
+                error instanceof NotFoundException
+            ) {
                 throw error;
             }
-            
-            // Handle unexpected errors
-            throw new InternalServerErrorException('Internal server error. Please try again later.');
+
+            throw new InternalServerErrorException(
+                "Internal server error. Please try again later."
+            );
         }
     }
 
-    /**
-     * Map user role to account type based on business logic
-     * admin/auctioneer -> auctioneer
-     * bidder -> bidder
-     */
     private mapUserRoleToAccountType(user_role: string): string {
         switch (user_role.toLowerCase()) {
-            case 'admin':
-            case 'auctioneer':
-                return 'auctioneer';
-            case 'bidder':
-                return 'bidder';
+            case "admin":
+            case "auctioneer":
+                return "auctioneer";
+            case "bidder":
+                return "bidder";
             default:
-                // Default to bidder if role is not recognized
-                this.logger.warn(`Unknown user role: ${user_role}, defaulting to bidder account type`);
-                return 'bidder';
+                this.logger.warn(
+                    `Unknown user role: ${user_role}, defaulting to bidder`
+                );
+                return "bidder";
         }
     }
 
-    /**
-     * Logout user by destroying the session
-     */
-    async logout(session_id: string, user_id: string, user_role: string): Promise<{ success: boolean; message: string }> {
+    async logout(
+        session_id: string,
+        user_id: string,
+        user_role: string
+    ): Promise<{ success: boolean; message: string }> {
         try {
-            const result = await this.redisSessions.destroySession(session_id, user_id, user_role);
-            
+            const result = await this.redisSessions.destroySession(
+                session_id,
+                user_id,
+                user_role
+            );
+
             if (result.success) {
-                this.logger.log(`User ${user_id} logged out successfully from session ${session_id}`);
+                this.logger.log(
+                    `User ${user_id} logged out successfully from session ${session_id}`
+                );
             }
-            
+
             return result;
         } catch (error) {
-            this.logger.error(`Error during logout for user ${user_id}:`, error);
-            throw new InternalServerErrorException('Logout failed. Please try again.');
+            this.logger.error(
+                `Error during logout for user ${user_id}:`,
+                error
+            );
+            throw new InternalServerErrorException(
+                "Logout failed. Please try again."
+            );
         }
     }
 
-    /**
-     * Get all active sessions for a user (useful for account management)
-     */
     async getUserActiveSessions(user_id: string, user_role: string) {
         try {
-            const sessions = await this.redisSessions.getAllSessionsByUser(user_id, user_role);
+            const sessions = await this.redisSessions.getAllSessionsByUser(
+                user_id,
+                user_role
+            );
             return {
                 success: true,
                 data: sessions,
-                message: 'Active sessions retrieved successfully'
+                message: "Active sessions retrieved successfully",
             };
         } catch (error) {
-            this.logger.error(`Error fetching active sessions for user ${user_id}:`, error);
-            throw new InternalServerErrorException('Failed to retrieve active sessions');
+            this.logger.error(
+                `Error fetching active sessions for user ${user_id}:`,
+                error
+            );
+            throw new InternalServerErrorException(
+                "Failed to retrieve active sessions"
+            );
         }
     }
 
-    /**
-     * Force logout from a specific session
-     */
-    async forceLogoutFromSession(session_id: string, user_id: string, user_role: string) {
+    async forceLogoutFromSession(
+        session_id: string,
+        user_id: string,
+        user_role: string
+    ) {
         try {
-            const result = await this.redisSessions.destroySession(session_id, user_id, user_role);
-            
+            const result = await this.redisSessions.destroySession(
+                session_id,
+                user_id,
+                user_role
+            );
+
             if (result.success) {
-                this.logger.log(`Force logout successful for user ${user_id} from session ${session_id}`);
+                this.logger.log(
+                    `Force logout successful for user ${user_id} from session ${session_id}`
+                );
             }
-            
+
             return result;
         } catch (error) {
-            this.logger.error(`Error during force logout for user ${user_id}:`, error);
-            throw new InternalServerErrorException('Force logout failed');
+            this.logger.error(
+                `Error during force logout for user ${user_id}:`,
+                error
+            );
+            throw new InternalServerErrorException("Force logout failed");
         }
     }
 }

@@ -3,6 +3,7 @@ export interface UserEntity {
     email: string;
     password: string; // Or whatever type your password_hash is
     account_status: string;
+    account_id : string;
     user_role: string;
     full_name : string;
 }
@@ -13,6 +14,7 @@ export interface LoginUserJwtEntity{
     account_status : string
     user_role : string
     full_name : string
+    account_id : string
     session_id : string
 
 }

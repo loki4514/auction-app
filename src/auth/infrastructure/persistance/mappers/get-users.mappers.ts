@@ -11,6 +11,7 @@ export class GetUserMappers {
             password: user.password_hash, // required for login validation
             account_status: user.user_status,
             user_role: user.user_role,
+            account_id : user.account_id,
             full_name: `${user.first_name} ${user.last_name}`.trim(),
         };
     }

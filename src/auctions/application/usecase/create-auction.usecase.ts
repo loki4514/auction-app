@@ -8,6 +8,7 @@ import {
     InternalServerErrorException 
 } from "@nestjs/common";
 import { auction_type } from "@prisma/client";
+import { Request } from "express";
 import * as moment from "moment-timezone";
 import { IGetAuctionDetails } from "src/auctions/domain/repository/auction-details.repository";
 import { IUploadAuction } from "src/auctions/domain/repository/upload-auction.respository";
@@ -98,7 +99,7 @@ export class CreateAuctionUsecase {
         throw new ConflictException("Failed to generate a unique auction ID after multiple attempts.");
     }
 
-    async createAuction(auctionDetails: AuctionDetailsDto, user_id: string) {
+    async createAuction(auctionDetails: AuctionDetailsDto, user_id: string, account_id : string, request : Request) {
         try {
             const auction_id = await this.generateUniqueAuctionId(user_id);
             const planDetails = await this.validateAuctionHosting(user_id, auctionDetails);
@@ -107,7 +108,7 @@ export class CreateAuctionUsecase {
                 auctionDetails.auction_end_time = moment().tz("UTC").add(planDetails.timed_auction_duration, "days").toDate();
             }
     
-            const saveAuctionDetails = { id: auction_id, auctioneer_id: user_id, ...auctionDetails };
+            const saveAuctionDetails = { id: auction_id, auctioneer_id: user_id, account_id : account_id, ...auctionDetails };
             const insertedAuction = await this.saveAuction.createAuction(saveAuctionDetails);
     
             if (!insertedAuction.insertion_flag) {

@@ -1,3 +1,6 @@
+import { AccountStatus } from "@prisma/client";
+
+AccountStatus
 export interface AccountEntity {
     account_id: string;
     company_name?: string | null;
@@ -5,6 +8,7 @@ export interface AccountEntity {
     current_plan_id?: string | null;
     is_used_free_plan?: boolean | null;
     account_type?: 'bidder' | 'auctioneer';
+    account_status : AccountStatus;
 
     // Location & Contact
     email?: string | null;

@@ -3,6 +3,11 @@ import { AccountEntity, UpdateAccountDTO } from "../entity/account.entity";
 export abstract class ICompanyRepository {
     abstract addedCompnay(): Promise<{ account_id: string | null }>;
 
+    abstract getCompanyById(account_id : string) : Promise<{
+        status?: number;
+        data?: AccountEntity | null;
+    }>;
+
     abstract findByCompanyPhoneNumber(phone_number: string): Promise<{
         status?: number;
         data?: AccountEntity | null;

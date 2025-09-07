@@ -31,6 +31,7 @@ export interface AuctionEntity {
     auction_start_time: Date;
     auction_end_time?: Date | null;
     auctioneer_id: string;
+    account_id : string
 }
 
 

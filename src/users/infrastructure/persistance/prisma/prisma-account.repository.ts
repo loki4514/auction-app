@@ -38,6 +38,26 @@ export class CompanyRepository extends ICompanyRepository {
         }
     }
 
+    async getCompanyById(
+        account_id: string
+    ): Promise<{ status?: number; data?: AccountEntity | null }> {
+        try {
+            const company = await this.prisma.accounts.findUnique({
+                where: { account_id },
+            });
+
+            return {
+                status: company ? 200 : 404,
+                data: company ? AccountMappers.fromORM(company) : null,
+            };
+        } catch (error) {
+            logger.error("Failed to fetch company by ID", { account_id, error });
+            throw new InternalServerErrorException(
+                "Error while fetching company by ID"
+            );
+        }
+    }
+
     async findByCompanyPhoneNumber(
         phone_number: string
     ): Promise<{ status?: number; data?: AccountEntity | null }> {
