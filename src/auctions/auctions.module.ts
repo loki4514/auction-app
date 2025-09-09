@@ -37,6 +37,8 @@ import { UpdateAuctionUseCase } from "./application/usecase/update-auction.useca
 import { BidAuctionController } from "./interface/controllers/bid-auction.controller";
 import { BidAuctionUsecase } from "./application/usecase/bid-auction.usecase";
 import { GetBidsUsecase } from "./application/usecase/get-bid-auction.usecase";
+import { IAuctionMetadataRepository } from "./domain/repository/auction-metadata.repository";
+import { AuctionMetadataRepository } from "./infrastructure/prisma/auction-metadata.prisma";
 
 
 
@@ -66,6 +68,7 @@ import { GetBidsUsecase } from "./application/usecase/get-bid-auction.usecase";
         GetAuctionImageById,
         BidAuctionUsecase,
         GetBidsUsecase,
+        AuctionMetadataRepository,
         {
             provide : IGetAuctionDetails,
             useClass : GetAuctionDetailsRepository 
@@ -105,6 +108,10 @@ import { GetBidsUsecase } from "./application/usecase/get-bid-auction.usecase";
         {
             provide : IGetAuctionImageById,
             useClass : GetAuctionImageById
+        },
+        {
+            provide : IAuctionMetadataRepository,
+            useClass : AuctionMetadataRepository
         }
     ],
     exports : [CreateAuctionUsecase, ApplicationLogger, TokenService, AuctionImageUploadUseCase, S3Service, GetAllAuctionUsecase,

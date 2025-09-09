@@ -11,18 +11,22 @@ import { auction_type } from "@prisma/client";
 import { Request } from "express";
 import * as moment from "moment-timezone";
 import { IGetAuctionDetails } from "src/auctions/domain/repository/auction-details.repository";
+import { IAuctionMetadataRepository } from "src/auctions/domain/repository/auction-metadata.repository";
 import { IUploadAuction } from "src/auctions/domain/repository/upload-auction.respository";
 import { TotalNoOfAuction } from "src/auctions/domain/types/auction-details.interface";
 import { AuctionPlanDetails } from "src/auctions/domain/types/auction-plan.details.interface";
 import { AuctionDetailsDto } from "src/auctions/interface/dtos/auction.dto";
 import { ApplicationLogger } from "src/shared/infrastructure/logger/application.logger";
-
+import { RequestInfoService } from "src/shared/utils/request_meta_data";
+import { CreateAuctionMetadataDto } from "src/auctions/domain/entity/auction-metadata.entity";
 @Injectable()
 export class CreateAuctionUsecase {
     constructor(
         private readonly logger: ApplicationLogger,
         private readonly auctionDetails: IGetAuctionDetails,
         private readonly saveAuction: IUploadAuction,
+        private readonly auctionMetadata : IAuctionMetadataRepository,
+        private readonly requestDetails : RequestInfoService
     ) {}
 
     async getHostedAuctionCount(user_id: string): Promise<TotalNoOfAuction | null> {
@@ -99,6 +103,17 @@ export class CreateAuctionUsecase {
         throw new ConflictException("Failed to generate a unique auction ID after multiple attempts.");
     }
 
+    async storeAuctionMetaData(auction_id : string, request : Request) {
+        let request_details = this.requestDetails.extractRequestInfo(request);
+        // Replace with actual metadata creation logic
+        let auction_metaData : CreateAuctionMetadataDto = {
+            auction_id,
+            ...request_details
+        };
+        // Optionally, save metadata using auctionMetadata repository
+        return await this.auctionMetadata.createAuctionMetadata(auction_metaData);
+    }
+
     async createAuction(auctionDetails: AuctionDetailsDto, user_id: string, account_id : string, request : Request) {
         try {
             const auction_id = await this.generateUniqueAuctionId(user_id);
@@ -114,6 +129,8 @@ export class CreateAuctionUsecase {
             if (!insertedAuction.insertion_flag) {
                 throw new HttpException("Auction insertion failed. Please try again later.", HttpStatus.INTERNAL_SERVER_ERROR);
             }
+
+            this.storeAuctionMetaData(auction_id, request)
     
             return { success: true, message: `${auctionDetails.auction_type} auction created successfully.`, auction_id };
         } catch (error) {
